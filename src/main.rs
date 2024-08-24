@@ -20,8 +20,7 @@ enum Shell {
     #[strum(serialize = "nushell")]
     Nushell,
     Xonsh,
-    Ksh,
-    Sh,
+    Sh, 
 }
 
 fn main() {
@@ -73,7 +72,7 @@ fn main() {
         let available = available_shells();
         for shell in available {
             let shell_str = &shell.to_string();
-            init_shell(&shell_str, true);
+            init_shell(shell_str, true);
         }
     } else if matches.contains_id("init-display") {
     	let fallback_shell = detect_shell();
@@ -120,9 +119,9 @@ fn available_shells() -> Vec<Shell> {
     if Command::new("xonsh").arg("--version").output().is_ok() {
         shells.push(Shell::Xonsh);
     }
-    if Command::new("ksh").arg("--version").output().is_ok() {
-        shells.push(Shell::Ksh);
-    }
+    // if Command::new("ksh").arg("--version").output().is_ok() {
+    //     shells.push(Shell::Ksh);
+    // }
     
     // Check for sh using `sh -c "echo 1"`
     if let Ok(output) = Command::new("sh").arg("-c").arg("echo 1").output() {
@@ -178,13 +177,10 @@ fn detect_shell_by_parent_process() -> Result<String, String> {
     }
 }
 
-fn detect_shell() -> String {
+// 
+// 
 
-    if let Ok(parent_process) = env::var("PSModulePath") {
-        if parent_process.to_lowercase().contains("powershell") {
-            return "pwsh".to_string();
-        }
-    }
+fn detect_shell() -> String {
 
     let sh = Shell::from_str(
         detect_shell_by_parent_process()
@@ -193,7 +189,14 @@ fn detect_shell() -> String {
     );
 
     if let Ok(shell) = sh {
+        // println!("{}", shell.to_string()); // Debug Only
         return shell.to_string();
+    }
+
+    if let Ok(parent_process) = env::var("PSModulePath") {
+        if parent_process.to_lowercase().contains("powershell") {
+            return "pwsh".to_string();
+        }
     }
     
     if env::var("XONSH_VERSION").is_ok() {
@@ -214,7 +217,7 @@ fn detect_shell() -> String {
         return "bash".to_string();
     }  
 
-    return "sh".to_string();
+    "sh".to_string()
 
 }
 
@@ -225,18 +228,14 @@ fn get_shell_function(shell: &str) -> String {
     match shell {
         "fish" => r#"
 function cdw
-    set cmd_output (command cdw $argv | string escape)
+    set cmd_output (command cdw $argv 2>&1 | string escape) 
     set exit_status $status
-    if test $exit_status -eq 0
-        if string match -q "\cg*" -- "$cmd_output"
-            cd (string sub -s 4 -- "$cmd_output")
-        else
-            command cdw $argv
-        end
+    if string match -q "\cg*" -- "$cmd_output"
+        cd (string sub -s 4 -- "$cmd_output" | string unescape)
     else
         command cdw $argv
-        return $exit_status
     end
+    return $exit_status
 end
 
 # Override the help function to preserve formatting
@@ -245,7 +244,7 @@ function __fish_cdw_help
 end
 
 # Set up completion to use the custom help function
-complete -c cdw -f -a "(__fish_cdw_help | string match -r '^  [^ ].*')"   
+complete -c cdw -f -a "(__fish_cdw_help | string match -r '^  [^ ].*')"
 "#,
         "zsh" | "bash" | "sh" | "ksh" => r#"
 cdw() {
@@ -265,18 +264,21 @@ cdw() {
     fi
 }
 "#,
-        "xonsh" => r#"
-def cdw(args):
-    import subprocess
-    try:
-        cmd_output = subprocess.check_output(['cdw'] + args, text=True)
-        if cmd_output.startswith('\a'):
-            %cd @(cmd_output[1:].strip())
+        "xonsh" => r#"#!/usr/bin/env xonsh
+
+def _cdw(args, stdin=None):
+    cmd_output = !(cdw @(args))
+    if cmd_output.returncode == 0:
+        # Check if the output starts with the alert character
+        if cmd_output.output.startswith('\a'):
+            cd @(cmd_output.output[1:].strip())
         else:
-            print(cmd_output, end='')
-    except subprocess.CalledProcessError as e:
-        print(e.output, end='')
-        return e.returncode
+            cdw @(args)
+    else:
+        print(cmd_output.output, end='')
+        return cmd_output.returncode
+
+aliases['cdw'] = _cdw
 "#,
         "nushell" => r#"#!/usr/bin/env nu
         
@@ -289,13 +291,13 @@ def --wrapped --env cdw [...args: string] {
     }
 }
 "#,
-        "pwsh" => r#"#!/usr/bin/env pwsh
+        "pwsh" | "powershell" => r#"#!/usr/bin/env pwsh
 
 function cdw {
     $cmd_output =  & (Get-Command -Name cdw -CommandType Application).Definition[0] $args
     if ($LASTEXITCODE -eq 0) {
         if ($cmd_output.StartsWith("`a")) {
-            Set-Location $cmd_output.Substring(1)
+            Set-Location $cmd_output.Substring(1).Trim()
         } else {
             $cmd_output
         }
@@ -310,10 +312,10 @@ function cdw {
 }
 
 fn init_shell(shell: &str, init_all_mode: bool) {
-    let function = get_shell_function(&shell);
-    append_to_shell_config(&shell, &function);
+    let function = get_shell_function(shell);
+    append_to_shell_config(shell, &function);
     println!("Function added to your {} configuration.", shell);
-    println!("{}Run `{}` in your terminal to apply the changes", 
+    println!("{}Run `{}` in your terminal to apply the changes.\n", 
         if init_all_mode {format!("In {} shell, ", &shell)} else {"".to_string()},
         get_user_source_line(shell));
 }
@@ -325,8 +327,10 @@ fn append_to_shell_config(shell: &str, function: &str) {
 
     let appendix = if shell == "nushell" {
         "nu"
-    } else if "pwsh" == shell {
+    } else if "powershell" == shell {
         "ps1"
+    } else if "xonsh" == shell {
+        "xsh"
     }
     else {
         shell
@@ -371,7 +375,7 @@ fn get_shell_config_file(shell: &str, home: &str) -> String {
         "ksh" => format!("{}/.kshrc", home),
         "xonsh" => format!("{}/.xonshrc", home),
         "nushell" => format!("{}/.config/nushell/config.nu", home),
-        "pwsh" => format!("{}/.config/powershell/Microsoft.PowerShell_profile.ps1", home),
+        "pwsh"|"powershell" => format!("{}/.config/powershell/Microsoft.PowerShell_profile.ps1", home),
         "sh" => format!("{}/.profile", home),
         _ => format!("{}/.profile", home),
     }
@@ -379,7 +383,7 @@ fn get_shell_config_file(shell: &str, home: &str) -> String {
 
 fn windows_to_wsl_path(path: &str) -> String {
     if path.chars().nth(1) == Some(':') &&
-       path.chars().nth(0).map(|c| c.to_ascii_uppercase()).filter(|&c| c >= 'A' && c <= 'Z').is_some() &&
+       path.chars().nth(0).map(|c| c.to_ascii_uppercase()).filter(|&c| c.is_ascii_uppercase()).is_some() &&
        path.chars().nth(2) == Some('\\')
     {
     let drive_letter = path.chars().next().unwrap().to_lowercase();
@@ -387,14 +391,14 @@ fn windows_to_wsl_path(path: &str) -> String {
         format!("/mnt/{}/{}", drive_letter, converted_path)
     } 
     else if path.chars().nth(1) == Some(':') &&
-            path.chars().nth(0).map(|c| c.to_ascii_uppercase()).filter(|&c| c >= 'A' && c <= 'Z').is_some() &&
+            path.chars().nth(0).map(|c| c.to_ascii_uppercase()).filter(|&c| c.is_ascii_uppercase()).is_some() &&
             path.len() == 2
     {
         let drive_letter = path.chars().next().unwrap().to_lowercase();
         format!("/mnt/{}/", drive_letter)
     }
     else {
-        format!("{}", path)
+        path.to_string()
     }
 }
 
@@ -404,8 +408,9 @@ fn get_source_line(shell: &str, function_file: &str, autocomplete_file: &str) ->
         // "nushell" => format!("source {}; source {}", function_file, autocomplete_file),
         "nushell" => format!("source {}", function_file),
         // "pwsh" => format!(". {}; . {}", function_file, autocomplete_file),
-        "pwsh" => format!(". {}", function_file),
+        "pwsh" | "powershell" => format!(". {}", function_file),
         // _ => format!("[ -f {} ] && . {}; [ -f {} ] && . {}", function_file, function_file, autocomplete_file, autocomplete_file),
+        "xonsh" => format!("source {}", function_file),
         _ => format!(". {}", function_file),
     }
 }
@@ -413,7 +418,10 @@ fn get_source_line(shell: &str, function_file: &str, autocomplete_file: &str) ->
 fn get_user_source_line(shell: &str) -> String {
     let home = env::var("HOME").expect("HOME not set");
     let file = get_shell_config_file(shell, home.as_str());
-    format!("source {}", file)
+    match shell {
+        "nushell" | "nu" | "fish" | "bash" | "zsh" | "xonsh" => format!("source {}", file),
+        "pwsh" | "powershell" | "sh" | _ => format!(". {}", file),
+    }
 }
 
 fn file_contains(file_path: &str, content: &str) -> bool {

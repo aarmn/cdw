@@ -2,6 +2,13 @@
 name = "cdw"
 version = "0.1.0"
 edition = "2021"
+authors = ["Aryan L. Horizon (AARMN) <aarmn80@gmail.com>"]
+description = "Change directory to a Windows path in WSL with ease"
+license = "MIT"
+documentation = "https://github.com/aarmn/cdw"
+homepage = "https://github.com/aarmn/cdw"
+repository = "https://github.com/aarmn/cdw"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

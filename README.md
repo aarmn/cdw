@@ -1,6 +1,14 @@
 # CDW - Change Directory for Windows paths in WSL 🚀
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<!-- ![Bash](https://img.shields.io/badge/Bash-Support-4EAA25?style=for-the-badge&logo=gnubash&logoColor=white)
+![Zsh](https://img.shields.io/badge/Supports-Zsh-F15A24?style=for-the-badge)
+![Fish](https://img.shields.io/badge/Supports-Fish-4AAE46?style=for-the-badge)
+![PowerShell](https://img.shields.io/badge/Supports-PowerShell-5391FE?style=for-the-badge&logo=powershell&logoColor=white)
+![PowerShell](https://img.shields.io/badge/powershell-5391FE?style=for-the-badge&logo=powershell&logoColor=white)
+![Nushell](https://img.shields.io/badge/Supports-Nushell-4E9A06?style=for-the-badge)
+![Xonsh](https://img.shields.io/badge/Supports-Xonsh-3776AB?style=for-the-badge)
+![Sh](https://img.shields.io/badge/Supports-Sh-4EAA25?style=for-the-badge) -->
 
 CDW (Change Directory (cd) for Windows path) is a powerful and user-friendly command-line tool that seamlessly bridges the gap between Windows and WSL (Windows Subsystem for Linux) file systems. Say goodbye to the hassle of manually converting Windows paths to WSL paths, just copy your windows path! 🎉
 
@@ -8,7 +16,7 @@ CDW (Change Directory (cd) for Windows path) is a powerful and user-friendly com
 
 - 🔄 Effortlessly convert Windows paths to WSL paths
 - 📂 Change directory using Windows-style paths in WSL
-- 🐚 Support for multiple shells (Bash, Zsh, Fish, PowerShell, Nushell, Xonsh, Ksh, and Sh)
+- 🐚 Support for multiple shells (Bash, Zsh, Fish, PowerShell, Nushell, Xonsh and Sh)
 - 🚀 Easy installation and setup
 - 💡 Intelligent shell detection
 - 🔍 Verbose mode for detailed output
@@ -80,7 +88,7 @@ cdw [OPTIONS] [PATH]
 
 ```bash
 # Change directory to a Windows path
-cdw C:\Users\YourName\Documents
+cdw 'C:\Users\YourName\Documents' # using `'` is necessary in bash for `\` to be interpreted as raw string and remain unescaped, check your shells for more info on raw/unescaped strings
 
 # Convert a Windows path to WSL path without changing directory
 cdw -c D:\Projects\MyProject
@@ -94,6 +102,18 @@ cdw --init-display zsh
 # Initialize CDW for all shells available (🚧WIP)
 cdw --init-all
 ```
+
+### Raw string in each shell
+
+| Shell      | Escape char (non N/A)       | Space support without escaping backslash | Example                     |
+|------------|-----------------------------|------------------------------------------|-----------------------------|
+| xonsh      | nothing or r"" or r''       |❌                                        |`cdw C:` (`:` and `\` terminated paths issue) or `cdw r"C:\"` or `cdw r'C:\'` |
+| bash       | ''                          |✅                                        |`cdw 'C:\'`                                   |
+| nushell    | nothing                     |❌                                        |`cdw C:\`                                     |
+| fish       | nothing                     |❌                                        |`cdw C:` (`:` and `\` terminated paths issue) |
+| sh/dash    | ''                          |✅                                        |`cdw 'C:\'`                                   |
+| zsh        | ''                          |✅                                        |`cdw 'C:\'`                                   |
+| powershell | nothing                     |✅                                        |`cdw C:\`                                     |
 
 ## 🐚 Supported Shells
 
@@ -117,13 +137,18 @@ CDW automatically creates shell-specific functions and autocompletion scripts in
 
 ## ✅ TODOs
 
-- [] Add and stablize autocomplete for all supported shells
-- [] Implement autocomplete for files, in shells possible
-- [] Add a "no auto-complete" mode
-- [] Make CDW a drop-in replacement of the system's `cd` command (activate only if using Windows-style path, pass unknown flags downstream, test for no collision with cd flags in common shells)
-- [] Address the issue with files containing `:` and `\` in their names in linux, in possible drop-in replacement solutions.
-- [] Cleanup code and make enum the passing data structure for shell type, not string or &str
-- [] Add bookmarking and jump-like fast cd features (Maybe!)
+- [ ] Add and stablize autocomplete for all supported shells
+- [ ] Implement autocomplete for files, in shells possible
+- [ ] Add a "no auto-complete" mode
+- [ ] Omit all remenents or completely support `ksh`
+- [ ] Make CDW a drop-in replacement of the system's `cd` command (activate only if using Windows-style path, pass unknown flags downstream, test for no collision with cd flags in common shells)
+- [ ] Address the issue with files containing `:` and `\` in their names in linux, in possible drop-in replacement solutions.
+- [ ] Cleanup code and make enum the passing data structure for shell type, not string or &str
+- [ ] Document code for rustdoc
+- [ ] Make lib.rs
+- [ ] Space issues with using raw strings
+- [ ] Clipboard app
+- [ ] Add bookmarking and jump-like fast cd features (Maybe!)
 
 ## 🤝 Contributing
 
