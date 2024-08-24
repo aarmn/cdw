@@ -1,6 +1,8 @@
 # CDW - Change Directory for Windows paths in WSL 🚀
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![cdw crate info badge](https://badgers.space/crates/downloads/cdw)
+![cdw crate downloads badge](https://badgers.space/crates/info/cdw)
 <!-- ![Bash](https://img.shields.io/badge/Bash-Support-4EAA25?style=for-the-badge&logo=gnubash&logoColor=white)
 ![Zsh](https://img.shields.io/badge/Supports-Zsh-F15A24?style=for-the-badge)
 ![Fish](https://img.shields.io/badge/Supports-Fish-4AAE46?style=for-the-badge)
@@ -146,9 +148,10 @@ CDW automatically creates shell-specific functions and autocompletion scripts in
 - [ ] Address the issue with files containing `:` and `\` in their names in linux, in possible drop-in replacement solutions.
 - [ ] Cleanup code and make enum the passing data structure for shell type, not string or &str
 - [ ] Document code for rustdoc
+- [ ] Add unit tests
 - [ ] Make lib.rs
 - [ ] Space issues with using raw strings
-- [ ] Clipboard app
+- [ ] Clipboard and shortcut service app
 - [ ] Add bookmarking and jump-like fast cd features (Maybe!)
 - [ ] Github actions setup
 
