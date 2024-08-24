@@ -1,6 +1,6 @@
 [package]
 name = "cdw"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["Aryan L. Horizon (AARMN) <aarmn80@gmail.com>"]
 description = "Change directory to a Windows path in WSL with ease"
