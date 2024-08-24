@@ -59,14 +59,19 @@ CDW (Change Directory (cd) for Windows path) is a powerful and user-friendly com
    cargo build --release
    ```
 
-3. Initialize CDW for your shell:
+3. Move CDW to a folder included in PATH environmental variable:
    ```
-   ./target/release/cdw --init
+   sudo cp ./target/release/cdw /bin/cdw
    ```
 
-4. Restart your shell or source your shell's configuration file.
+4. Initialize CDW for your shell:
+   ```
+   cdw --init
+   ```
 
-5. Start using CDW:
+5. Restart your shell or source your shell's configuration file.
+
+6. Start using CDW:
    ```
    cdw C:\Users\YourName\Documents
    ```
