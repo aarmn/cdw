@@ -134,6 +134,7 @@ CDW automatically creates shell-specific functions and autocompletion scripts in
 - The `--init-all` feature is currently a work in progress.
 - CDW is currently a drop-in replacement for `cd`, but without support for `cd` flags, as they are rarely used.
 - CDW may not work correctly if you have `:` or `\` in your file names. This limitation is acknowledged and may be addressed in future versions.
+- Lack of a clear raw-string syntax in some shells, makes it hard to pass paths containing spaces without escaping `\`. I dedicated a row in table, for reporting shells support of raw-string and backslash terminated paths execution with ease.
 
 ## ✅ TODOs
 
@@ -149,6 +150,7 @@ CDW automatically creates shell-specific functions and autocompletion scripts in
 - [ ] Space issues with using raw strings
 - [ ] Clipboard app
 - [ ] Add bookmarking and jump-like fast cd features (Maybe!)
+- [ ] Github actions setup
 
 ## 🤝 Contributing
 
